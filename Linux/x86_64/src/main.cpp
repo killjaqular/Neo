@@ -3,8 +3,10 @@
 // Platform Libraries
 
 // Project Libraries
-#include "include/logger.hpp"
 #include "include/chip_8.hpp"
+#include "include/cpu.hpp"
+#include "include/logger.hpp"
+#include "include/rom.hpp"
 
 // Standard Libraries
 #include <cstdbool>
@@ -117,27 +119,36 @@ help:
 int main(int argc, char * argv[]) {
     int ret = EXIT_FAILURE;
 
-    ROM & rom = ROM::instance();
+    CHIP_8 & chip_8_machine = CHIP_8::instance();
     Options & options = Options::instance();
+    ROM & rom_reader = ROM::instance();
 
     if (!parse_cli(argc - 1, argv + 1)) {
         puts(USAGE);
         goto parse_cli_fail;
     }
 
-    rom.read_rom_from_file(*options.rom_file_path);
+    rom_reader.read_rom_from_file(*options.rom_file_path);
 
-    if (!rom.is_valid_chip_8_rom()) {
+    if (!rom_reader.is_valid_chip_8_rom()) {
         fprintf(stdout, "Invalid CHIP-8 ROM binary format");
         goto is_valid_chip_8_rom_fail;
     }
 
+    chip_8_machine.load_rom(rom_reader.rom);
+
     INFO(stdout, "Starting...");
     OKAY(stdout, "Emulating %s", Options::instance().rom_file_path->c_str());
+
+    if (!chip_8_machine.run()) {
+        ERRO(stdout, "CHIP-8 Virtual machine did not exit gracefully");
+        goto run_fail;
+    }
 
     ret = EXIT_SUCCESS;
     INFO(stdout, "Stopping...");
 
+run_fail:
 is_valid_chip_8_rom_fail:
 parse_cli_fail:
     return ret;
