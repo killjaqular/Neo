@@ -6,6 +6,7 @@
 #include "include/chip_8.hpp"
 #include "include/cpu.hpp"
 #include "include/logger.hpp"
+#include "include/renderer.hpp"
 #include "include/rom.hpp"
 
 // Standard Libraries
@@ -15,6 +16,9 @@
 #include <memory>
 #include <string.h>
 #include <string>
+
+#include <thread>
+#include <chrono>
 
 const char USAGE[] = {
 "\nUsage: program [-help] -rom <some/path/to/chip-8.rom>\n"
@@ -43,7 +47,7 @@ public:
         if (!has_rom_path()) goto has_rom_path_fail;
 
         try {
-            ret = std::filesystem::exists(* rom_file_path);
+            ret = std::filesystem::exists(*rom_file_path);
             if (!ret) goto exists_failed;
         } catch (...) {
             goto exception;
@@ -121,35 +125,54 @@ int main(int argc, char * argv[]) {
 
     CHIP_8 & chip_8_machine = CHIP_8::instance();
     Options & options = Options::instance();
+    Renderer & renderer = Renderer::instance();
     ROM & rom_reader = ROM::instance();
 
+    // Parse given CLI
     if (!parse_cli(argc - 1, argv + 1)) {
         puts(USAGE);
         goto parse_cli_fail;
     }
 
-    rom_reader.read_rom_from_file(*options.rom_file_path);
-
+    // Load in ROM file from disk
+    if (!rom_reader.read_rom_from_file(*options.rom_file_path)) {
+        ERRO(stdout, "rom_reader.read_rom_from_file() fail");
+        goto read_rom_from_file_fail;
+    }
+    // Validate ROM file
     if (!rom_reader.is_valid_chip_8_rom()) {
-        fprintf(stdout, "Invalid CHIP-8 ROM binary format");
+        ERRO(stdout, "rom_reader.is_valid_chip_8_rom() fail");
         goto is_valid_chip_8_rom_fail;
     }
 
+    // Load the ROM into the CHIP-8 virtual machine's memory
     chip_8_machine.load_rom(rom_reader.rom);
+
+    // Start the Renderer
+    if (!renderer.init("Neo", 512, 512)) {
+        ERRO(stdout, "renderer.init() fail");
+        goto init_failure;
+    }
 
     INFO(stdout, "Starting...");
     OKAY(stdout, "Emulating %s", Options::instance().rom_file_path->c_str());
 
+    // Run the CHIP-8 virtual machine
     if (!chip_8_machine.run()) {
         ERRO(stdout, "CHIP-8 Virtual machine did not exit gracefully");
         goto run_fail;
     }
 
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     ret = EXIT_SUCCESS;
     INFO(stdout, "Stopping...");
 
 run_fail:
+    renderer.shutdown();
+init_failure:
 is_valid_chip_8_rom_fail:
+read_rom_from_file_fail:
 parse_cli_fail:
     return ret;
 }

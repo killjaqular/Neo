@@ -1,11 +1,7 @@
 # Build artifacts
 build/
-CMakeFiles/
 CMakeCache.txt
-*.cmake
 *.o
 *.obj
-*.pdb
-*.exe
 *.log
 .vscode

@@ -23,6 +23,7 @@ public:
 
     std::unique_ptr<std::vector<uint8_t>> rom;
 
+    [[nodiscard("Ensure ROM File was read in from filesystem")]]
     bool read_rom_from_file(const std::string & rom_file_path) {
         bool ret = false;
 
@@ -79,6 +80,7 @@ public:
      * 1. Check file size
      * 2. Even byte count
     */
+    [[nodiscard("Ensure ROM is a valid ROM file")]]
     bool is_valid_chip_8_rom() {
         bool ret = false;
 

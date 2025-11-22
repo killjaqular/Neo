@@ -9,6 +9,7 @@
 
 // Standard Libraries
 
+[[nodiscard("Ensure CHIP-8 Virtual Machine has a known exit")]]
 bool CHIP_8::run() {
     bool ret = false;
     ret = true;
