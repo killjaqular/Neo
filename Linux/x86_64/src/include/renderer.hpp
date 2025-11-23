@@ -1,8 +1,9 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
-
 // 3rd Party Libraries
 #include <SDL2/SDL.h>
+
+// Platform Libraries
 
 // Project Libraries
 #include "logger.hpp"
@@ -18,38 +19,19 @@ public:
         return instance;
     }
 
-    // --- Initialize SDL + create window + renderer ---
-    bool init(const char * title, int width, int height) noexcept;
+    SDL_Renderer * renderer = nullptr;
+    SDL_Window * window = nullptr;
 
-    // --- Shutdown SDL resources safely ---
-    void shutdown() noexcept;
+    bool is_SDL_init = false;
 
-    // --- Drawing helpers ---
-    void clear() noexcept;
-    void present() noexcept;
+    void NEO_SDL_Init();
+    SDL_Window * NEO_SDL_CreateWindow();
+    SDL_Renderer * NEO_SDL_CreateRenderer();
 
 private:
-    struct WindowDeleter {
-        void operator()(SDL_Window * w) const noexcept {
-            if (w) SDL_DestroyWindow(w);
-        }
-    };
-
-    struct RendererDeleter {
-        void operator()(SDL_Renderer * r) const noexcept {
-            if (r) SDL_DestroyRenderer(r);
-        }
-    };
-
-    using WindowPtr   = std::unique_ptr<SDL_Window, WindowDeleter>;
-    using RendererPtr = std::unique_ptr<SDL_Renderer, RendererDeleter>;
-
-    WindowPtr   sdl_window   = nullptr;
-    RendererPtr sdl_renderer = nullptr;
-
     // --- Private Constructor / Destructor ---
-    Renderer() = default;
-    ~Renderer() = default;
+    Renderer();
+    ~Renderer();
 
     // --- Disable copy and move ---
     Renderer(const Renderer &) = delete;

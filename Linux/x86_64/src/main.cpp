@@ -17,9 +17,6 @@
 #include <string.h>
 #include <string>
 
-#include <thread>
-#include <chrono>
-
 const char USAGE[] = {
 "\nUsage: program [-help] -rom <some/path/to/chip-8.rom>\n"
 "CHIP-8 Emulator for Linux on x86_64\n"
@@ -123,10 +120,10 @@ help:
 int main(int argc, char * argv[]) {
     int ret = EXIT_FAILURE;
 
-    CHIP_8 & chip_8_machine = CHIP_8::instance();
     Options & options = Options::instance();
+    ROM & rom = ROM::instance();
+    CHIP_8 & chip_8 = CHIP_8::instance();
     Renderer & renderer = Renderer::instance();
-    ROM & rom_reader = ROM::instance();
 
     // Parse given CLI
     if (!parse_cli(argc - 1, argv + 1)) {
@@ -135,44 +132,41 @@ int main(int argc, char * argv[]) {
     }
 
     // Load in ROM file from disk
-    if (!rom_reader.read_rom_from_file(*options.rom_file_path)) {
+    if (!rom.read_rom_from_file(*options.rom_file_path)) {
         ERRO(stdout, "rom_reader.read_rom_from_file() fail");
         goto read_rom_from_file_fail;
     }
     // Validate ROM file
-    if (!rom_reader.is_valid_chip_8_rom()) {
+    if (!rom.is_valid_chip_8_rom()) {
         ERRO(stdout, "rom_reader.is_valid_chip_8_rom() fail");
         goto is_valid_chip_8_rom_fail;
     }
 
     // Load the ROM into the CHIP-8 virtual machine's memory
-    chip_8_machine.load_rom(rom_reader.rom);
+    chip_8.load_rom(rom.rom);
 
     // Start the Renderer
-    if (!renderer.init("Neo", 512, 512)) {
-        ERRO(stdout, "renderer.init() fail");
-        goto init_failure;
-    }
+    // if (!renderer.init("Neo", 512, 512)) {
+    //     ERRO(stdout, "renderer.init() fail");
+    //     goto renderer_init_fail;
+    // }
 
     INFO(stdout, "Starting...");
     OKAY(stdout, "Emulating %s", Options::instance().rom_file_path->c_str());
 
     // Run the CHIP-8 virtual machine
-    if (!chip_8_machine.run()) {
+    if (!chip_8.run()) {
         ERRO(stdout, "CHIP-8 Virtual machine did not exit gracefully");
         goto run_fail;
     }
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     ret = EXIT_SUCCESS;
     INFO(stdout, "Stopping...");
 
 run_fail:
-    renderer.shutdown();
-init_failure:
+// renderer_init_fail:
 is_valid_chip_8_rom_fail:
 read_rom_from_file_fail:
 parse_cli_fail:
-    return ret;
+    exit(ret);
 }
