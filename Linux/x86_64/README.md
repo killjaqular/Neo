@@ -19,13 +19,19 @@ Neo/Linux/x86_64>cmake --build build/build_fuzz
 
 # Requirements
 SDL2 `https://wiki.libsdl.org/SDL2/FrontPage`
-C++20 Compiler
+C++20 Compiler (Clang++-18 for sanitizer build)
 
 ## KNOWN MEMORY LEAKS
 
 Seems like there are libraries outside of my control that are not cleaning up resources at
 main-exit. We will have the sanitizer ignore these leaks; we cannot do anything about these.
 
+Using SDL as intended and documented:
+```c++
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Quit();
+```
+leads to memory leaks in all my use cases.
 ```bash
 =================================================================
 ==57815==ERROR: LeakSanitizer: detected memory leaks
@@ -52,3 +58,21 @@ Indirect leak of 608 byte(s) in 4 object(s) allocated from:
 
 SUMMARY: AddressSanitizer: 66832 byte(s) leaked in 8 allocation(s).
 ```
+
+We will manually suppress memory leaks outside of our own code in frames not controlled by us 
+using:
+```c++
+#include <sanitizer/lsan_interface.h>
+#include <SDL2/SDL.h>
+
+__lsan_disable();
+SDL_Init(SDL_INIT_VIDEO);
+__lsan_enable();
+
+__lsan_disable();
+SDL_Quit();
+__lsan_enable();
+```
+
+This has suppressed memory leaks in frames that are outside of my code, I can finally move on
+with my life.

@@ -24,9 +24,8 @@ public:
 
     bool is_SDL_init = false;
 
-    void NEO_SDL_Init();
-    SDL_Window * NEO_SDL_CreateWindow();
-    SDL_Renderer * NEO_SDL_CreateRenderer();
+    void NEO_SDL_CreateWindow();
+    void NEO_SDL_CreateRenderer();
 
 private:
     // --- Private Constructor / Destructor ---

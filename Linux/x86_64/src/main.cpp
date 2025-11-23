@@ -146,10 +146,8 @@ int main(int argc, char * argv[]) {
     chip_8.load_rom(rom.rom);
 
     // Start the Renderer
-    // if (!renderer.init("Neo", 512, 512)) {
-    //     ERRO(stdout, "renderer.init() fail");
-    //     goto renderer_init_fail;
-    // }
+    renderer.NEO_SDL_CreateWindow();
+    renderer.NEO_SDL_CreateRenderer();
 
     INFO(stdout, "Starting...");
     OKAY(stdout, "Emulating %s", Options::instance().rom_file_path->c_str());
@@ -164,7 +162,7 @@ int main(int argc, char * argv[]) {
     INFO(stdout, "Stopping...");
 
 run_fail:
-// renderer_init_fail:
+renderer_init_fail:
 is_valid_chip_8_rom_fail:
 read_rom_from_file_fail:
 parse_cli_fail:
