@@ -11,6 +11,15 @@
 // Standard Libraries
 #include <memory>
 
+#ifdef NEO_LSAN_ENABLED
+#define NEO_LSAN_DISABLE() __lsan_disable()
+#define NEO_LSAN_ENABLE()  __lsan_enable()
+#else
+// Expand to nothing in non-sanitize builds
+#define NEO_LSAN_DISABLE() do {} while(0)
+#define NEO_LSAN_ENABLE()  do {} while(0)
+#endif
+
 class Renderer {
 public:
     // --- Access Singleton Instance ---
