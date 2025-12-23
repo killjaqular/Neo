@@ -144,10 +144,22 @@ int main(int argc, char * argv[]) {
 
     // Load the ROM into the CHIP-8 virtual machine's memory
     chip_8.load_rom(rom.rom);
+    if (!chip_8.rom) {
+        ERRO(stdout, "chip_8.load_rom() fail");
+        goto chip_8_load_rom_fail;
+    }
 
     // Start the Renderer
     renderer.NEO_SDL_CreateWindow();
+    if (!renderer.window) {
+        ERRO(stdout, "renderer.NEO_SDL_CreateWindow() fail");
+        goto renderer_NEO_SDL_CreateWindow_fail;
+    }
     renderer.NEO_SDL_CreateRenderer();
+    if (!renderer.renderer) {
+        ERRO(stdout, "renderer.NEO_SDL_CreateRenderer() fail");
+        goto renderer_NEO_SDL_CreateRenderer_fail;
+    }
 
     INFO(stdout, "Starting...");
     OKAY(stdout, "Emulating %s", Options::instance().rom_file_path->c_str());
@@ -162,7 +174,9 @@ int main(int argc, char * argv[]) {
     INFO(stdout, "Stopping...");
 
 run_fail:
-renderer_init_fail:
+renderer_NEO_SDL_CreateRenderer_fail:
+renderer_NEO_SDL_CreateWindow_fail:
+chip_8_load_rom_fail:
 is_valid_chip_8_rom_fail:
 read_rom_from_file_fail:
 parse_cli_fail:

@@ -29,6 +29,7 @@ main-exit. We will have the sanitizer ignore these leaks; we cannot do anything 
 Using SDL as intended and documented:
 ```c++
     SDL_Init(SDL_INIT_VIDEO);
+    ... other SDL function calls that allocate memory in some library ...
     SDL_Quit();
 ```
 leads to memory leaks in all my use cases.
@@ -62,7 +63,7 @@ SUMMARY: AddressSanitizer: 66832 byte(s) leaked in 8 allocation(s).
 We will manually suppress memory leaks outside of our own code in frames not controlled by us 
 using:
 ```c++
-#include <sanitizer/lsan_interface.h>
+#include "sanitize.hpp" // My new header library to manage LSAN scoping
 #include <SDL2/SDL.h>
 
 __lsan_disable();
